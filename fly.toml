@@ -1,0 +1,21 @@
+# Fly.io: `fly launch --copy-config --no-deploy && fly volumes create data -s 1 && fly secrets set DASHBOARD_PASSWORD=... && fly deploy`
+app = "iitian-scalper"
+primary_region = "sin"      # Singapore — closest to India; use "lhr" for London Exness servers
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = false   # the engine must keep running
+  auto_start_machines = true
+  min_machines_running = 1
+
+[mounts]
+  source = "data"
+  destination = "/app/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

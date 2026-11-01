@@ -1,0 +1,8 @@
+fastapi>=0.110
+uvicorn[standard]>=0.27
+numpy>=1.26
+python-dotenv>=1.0
+httpx>=0.27
+cryptography>=42
+# Live / real-price mode (cloud MT5 gateway for Exness). Optional for paper mode on synthetic data.
+metaapi-cloud-sdk>=27.0

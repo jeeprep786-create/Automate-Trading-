@@ -1,0 +1,14 @@
+# Render.com one-click: New → Blueprint → point at this repo. Starter instance ≈ $7/mo keeps it always-on.
+services:
+  - type: web
+    name: iitian-scalper
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/status
+    envVars:
+      - key: DASHBOARD_PASSWORD
+        sync: false          # you set it in the Render dashboard; never commit it
+    disk:
+      name: data
+      mountPath: /app/data   # keeps credentials.json, trades.json, config.json across deploys
+      sizeGB: 1

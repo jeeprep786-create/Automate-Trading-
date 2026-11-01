@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>IITian Scalper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+:root{
+  --bg:#0b0e13;--panel:#12161e;--panel2:#171c26;--line:#222a37;--text:#e6e9ef;--muted:#8a93a6;
+  --gold:#f2b632;--green:#2ecc8f;--red:#ff5c6c;--blue:#4ea1ff;--amber:#ffb454;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;--sans:Inter,system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px}
+a{color:var(--blue)}
+header{display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+.brand{font-weight:700;font-size:17px;letter-spacing:.3px}
+.brand span{color:var(--gold)}
+.tag{font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.tag.ok{border-color:var(--green);color:var(--green)}
+.tag.warn{border-color:var(--amber);color:var(--amber)}
+.tag.bad{border-color:var(--red);color:var(--red)}
+.tag.live{background:var(--red);color:#fff;border-color:var(--red);font-weight:600}
+.spacer{flex:1}
+button{background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-family:var(--sans)}
+button:hover{border-color:var(--muted)}
+button.primary{background:var(--gold);color:#111;border-color:var(--gold)}
+button.danger{background:transparent;color:var(--red);border-color:var(--red)}
+button.kill{background:var(--red);color:#fff;border-color:var(--red)}
+button:disabled{opacity:.4;cursor:not-allowed}
+main{padding:18px 20px;display:grid;gap:16px;grid-template-columns:repeat(12,1fr)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.card h3{margin:0 0 10px;font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-weight:600}
+.c12{grid-column:span 12}.c8{grid-column:span 8}.c6{grid-column:span 6}.c4{grid-column:span 4}.c3{grid-column:span 3}
+@media(max-width:1100px){.c8,.c6,.c4,.c3{grid-column:span 12}}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{background:var(--panel2);border-radius:10px;padding:10px 12px}
+.stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.stat .v{font-family:var(--mono);font-size:19px;font-weight:600;margin-top:3px}
+.pos{color:var(--green)}.neg{color:var(--red)}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+th{text-align:left;color:var(--muted);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--line);font-size:11px;text-transform:uppercase}
+td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.sym{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.symcard{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer}
+.symcard.active{border-color:var(--gold)}
+.symcard .n{font-weight:700;display:flex;justify-content:space-between}
+.symcard .px{font-family:var(--mono);font-size:16px;margin:4px 0}
+.symcard .m{font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.6}
+.pill{font-size:10px;padding:2px 7px;border-radius:999px;background:var(--line);color:var(--muted);font-family:var(--mono)}
+.pill.up{background:rgba(46,204,143,.15);color:var(--green)}.pill.down{background:rgba(255,92,108,.15);color:var(--red)}
+#chart,#eqchart,#btchart{width:100%;height:320px}
+#eqchart{height:200px}#btchart{height:220px}
+.log{font-family:var(--mono);font-size:12px;max-height:260px;overflow:auto;line-height:1.5}
+.log .warning{color:var(--amber)}.log .error{color:var(--red)}.log .t{color:var(--muted)}
+form .row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 12px;margin-bottom:10px}
+label{display:flex;flex-direction:column;font-size:11px;color:var(--muted);gap:3px}
+input,select{background:var(--bg);border:1px solid var(--line);color:var(--text);padding:6px 8px;border-radius:6px;font-family:var(--mono);font-size:12px}
+input[type=checkbox]{width:16px;height:16px}
+.banner{padding:10px 14px;border-radius:10px;font-size:13px}
+.banner.info{background:rgba(78,161,255,.1);border:1px solid rgba(78,161,255,.4)}
+.banner.warn{background:rgba(255,180,84,.1);border:1px solid rgba(255,180,84,.5)}
+.banner.bad{background:rgba(255,92,108,.1);border:1px solid rgba(255,92,108,.5)}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs button{padding:6px 12px;font-size:12px}
+.tabs button.on{border-color:var(--gold);color:var(--gold)}
+.hint{color:var(--muted);font-size:12px}
+details summary{cursor:pointer;color:var(--muted);font-size:12px;margin:6px 0}
+.toast{position:fixed;bottom:18px;right:18px;background:var(--panel2);border:1px solid var(--line);padding:10px 14px;border-radius:10px;display:none;z-index:9}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">IITian <span>Scalper</span></div>
+  <span id="modeTag" class="tag">PAPER</span>
+  <span id="connTag" class="tag">—</span>
+  <span id="runTag" class="tag">stopped</span>
+  <span id="haltTag" class="tag" style="display:none"></span>
+  <div class="spacer"></div>
+  <span class="hint" id="clock"></span>
+  <button id="btnStart" class="primary" onclick="startEngine()">▶ Start</button>
+  <button id="btnStop" onclick="post('/api/stop')">■ Stop</button>
+  <button id="btnKill" class="kill" onclick="killAll()">⚠ KILL</button>
+</header>
+
+<main>
+  <div class="c12" id="banner"></div>
+
+  <section class="card c12" id="connectCard">
+    <h3>Connect Exness API <span class="hint">— native Trader API (Ed25519 signed). Keys are stored only on this server in <code>data/credentials.json</code> and never leave it.</span></h3>
+    <form onsubmit="saveCreds(event)">
+      <div class="row">
+        <label>API key (EXN-API-KEY) <input id="c_key" placeholder="exnsk-…" autocomplete="off"></label>
+        <label>Trading account ID <input id="c_acc" placeholder="123456"></label>
+        <label>Gateway URL (DNS widget in Key Management) <input id="c_gw" placeholder="https://…exness.com"></label>
+        <label>Access Point (auto-filled by Test) <input id="c_ap" placeholder="resolved automatically"></label>
+      </div>
+      <label style="margin-bottom:8px">Private signing key — 128-hex from Exness, or your own PKCS#8 PEM
+        <textarea id="c_priv" rows="3" style="background:var(--bg);border:1px solid var(--line);color:var(--text);padding:6px 8px;border-radius:6px;font-family:var(--mono);font-size:11px" placeholder="paste here (leave blank to keep the stored key)"></textarea></label>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="primary" type="submit">Save keys</button>
+        <button type="button" onclick="testExness()">Test connection</button>
+        <button type="button" onclick="keygen()">Generate my own key pair</button>
+        <button type="button" onclick="clearCreds()" class="danger">Forget keys</button>
+        <span class="hint" id="credStatus"></span>
+      </div>
+    </form>
+    <details id="keygenBox" style="display:none"><summary>Generated key pair (shown once)</summary>
+      <div class="hint">1. Paste the <b>public key</b> below into Key Management → "I'll use my own public key". 2. Click <b>Save keys</b> above — the private key field has been pre-filled. 3. Keep a backup of the private key somewhere safe.</div>
+      <label>Public key for registration (standard padded Base64, SPKI DER)<textarea id="kg_pub" rows="2" readonly style="font-family:var(--mono);font-size:11px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px"></textarea></label>
+    </details>
+    <details><summary>Probe raw API responses (to verify field names)</summary>
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin:6px 0">
+        <label>Endpoint <select id="pr_what"><option>account</option><option>limits</option><option>instruments</option><option>conditions</option><option>snapshot</option><option>candles</option></select></label>
+        <label>Instrument <input id="pr_ins" value="XAUUSD"></label>
+        <label>Timeframe <select id="pr_tf"><option>1m</option><option selected>5m</option></select></label>
+        <button type="button" onclick="probe()">Fetch</button>
+      </div>
+      <pre id="pr_out" class="log" style="white-space:pre-wrap;max-height:320px"></pre>
+    </details>
+  </section>
+
+  <section class="card c12">
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <section class="card c12">
+    <h3>Symbols</h3>
+    <div class="sym" id="symbols"></div>
+  </section>
+
+  <section class="card c8">
+    <h3>Chart <span class="hint" id="chartTitle"></span></h3>
+    <div id="chart"></div>
+  </section>
+  <section class="card c4">
+    <h3>Equity</h3>
+    <div id="eqchart"></div>
+  </section>
+
+  <section class="card c6">
+    <h3>Open positions</h3>
+    <table><thead><tr><th>Sym</th><th>Side</th><th>Lots</th><th>Entry</th><th>SL</th><th>TP</th><th>PnL</th><th></th></tr></thead>
+    <tbody id="positions"><tr><td colspan="8" class="hint">none</td></tr></tbody></table>
+  </section>
+  <section class="card c6">
+    <h3>Event log</h3>
+    <div class="log" id="log"></div>
+  </section>
+
+  <section class="card c12">
+    <h3>Backtest <span class="hint">— same strategy code the engine runs; check the numbers before you trust it with money</span></h3>
+    <form onsubmit="runBacktest(event)" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+      <label>Symbol <select id="btSymbol"></select></label>
+      <label>Timeframe <select id="btTf"><option>1m</option><option selected>5m</option><option>15m</option><option>1h</option></select></label>
+      <label>Bars <input id="btBars" type="number" value="3000" min="300" max="5000"></label>
+      <label>Balance <input id="btBal" type="number" value="10000"></label>
+      <button class="primary" type="submit">Run backtest</button>
+      <span class="hint" id="btNote"></span>
+    </form>
+    <div class="stats" id="btStats" style="margin-top:12px"></div>
+    <div id="btchart" style="margin-top:10px"></div>
+  </section>
+
+  <section class="card c12">
+    <h3>Settings</h3>
+    <form id="cfgForm" onsubmit="saveConfig(event)">
+      <div class="row">
+        <label>Mode <select id="f_mode"><option value="paper">paper (simulated fills)</option><option value="live">live (REAL ORDERS)</option></select></label>
+        <label>Broker backend <select id="f_backend"><option value="exness">Exness Trader API (native)</option><option value="metaapi">MetaApi (MT5 gateway)</option></select></label>
+        <label>Poll seconds <input id="f_poll" type="number" step="0.5" min="1"></label>
+        <label>Paper balance <input id="f_pbal" type="number"></label>
+        <label>Max daily loss % <input id="f_mdl" type="number" step="0.1"></label>
+        <label>Max daily trades <input id="f_mdt" type="number"></label>
+        <label>Max open positions <input id="f_mop" type="number"></label>
+        <label>Trading hours (UTC) <input id="f_hours" placeholder="07:00-20:00"></label>
+      </div>
+      <div class="tabs" id="symTabs"></div>
+      <div class="row" id="symFields"></div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="primary" type="submit">Save settings</button>
+        <button type="button" onclick="post('/api/reset-paper').then(()=>toast('Paper account reset'))">Reset paper account</button>
+        <button type="button" onclick="post('/api/reconnect').then(r=>toast(r.connected?'MetaApi connected':'Not connected: '+r.error))">Reconnect MetaApi</button>
+        <span class="hint">Live mode needs a working connection (Connect panel above). The bot never asks for your Exness portal password — only an API key you can revoke.</span>
+      </div>
+    </form>
+  </section>
+
+  <section class="card c12">
+    <h3>Trade history</h3>
+    <table><thead><tr><th>Closed</th><th>Sym</th><th>Side</th><th>Lots</th><th>Entry</th><th>Exit</th><th>Reason</th><th>R</th><th>PnL</th></tr></thead>
+    <tbody id="trades"></tbody></table>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+let CFG = null, STATUS = null, selSym = null, selTab = 0;
+const SYM_FIELDS = [
+  ["enabled","Enabled","checkbox"],["timeframe","Timeframe","select:1m,5m,15m,1h"],
+  ["ema_fast","EMA fast"],["ema_slow","EMA slow"],["ema_trend","EMA trend"],["rsi_period","RSI period"],
+  ["rsi_long_min","RSI long min"],["rsi_long_max","RSI long max"],["rsi_short_min","RSI short min"],["rsi_short_max","RSI short max"],
+  ["atr_period","ATR period"],["sl_atr_mult","SL × ATR"],["tp_rr","TP (R:R)"],
+  ["breakeven_r","Break-even at R"],["trail_trigger_r","Trail from R"],["trail_atr_mult","Trail × ATR"],["trail_step_atr","Trail step × ATR"],
+  ["risk_pct","Risk % / trade"],["fixed_volume","Fixed lots (0=auto)"],["max_positions","Max positions"],["cooldown_bars","Cooldown bars"],
+  ["max_spread_atr","Max spread × ATR"],["min_atr_pct","Min ATR %"],
+  ["use_trend_filter","Trend filter","checkbox"],["use_vwap_filter","VWAP filter","checkbox"],["use_supertrend_filter","Supertrend filter","checkbox"],
+  ["exit_on_opposite_cross","Exit on opposite cross","checkbox"],
+];
+
+async function get(u){const r=await fetch(u);if(!r.ok)throw new Error((await r.json()).detail||r.status);return r.json();}
+async function post(u,b){const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})});const j=await r.json();if(!r.ok){toast(j.detail||'error');throw new Error(j.detail);}return j;}
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',3500);}
+const fmt=(n,d=2)=>n==null?'—':Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});
+const pn=n=>`<span class="${n>=0?'pos':'neg'}">${n>=0?'+':''}${fmt(n)}</span>`;
+
+async function startEngine(){
+  if(CFG.mode==='live'){
+    const ok=prompt('LIVE MODE: real orders will be sent to your Exness account via MetaApi.\nType LIVE to confirm.');
+    if(ok!=='LIVE')return; await post('/api/start',{confirm:'LIVE'});
+  } else await post('/api/start');
+  refresh();
+}
+async function killAll(){ if(confirm('Close ALL open positions and stop the engine?')){await post('/api/kill');refresh();} }
+
+// ---------------- status ----------------
+async function refresh(){
+  try{STATUS=await get('/api/status');}catch(e){$('#connTag').textContent='server offline';$('#connTag').className='tag bad';return;}
+  const s=STATUS;
+  $('#clock').textContent=new Date(s.time).toLocaleTimeString();
+  $('#modeTag').textContent=s.mode.toUpperCase(); $('#modeTag').className='tag '+(s.mode==='live'?'live':'ok');
+  $('#connTag').textContent='data: '+s.data_source; $('#connTag').className='tag '+(s.live_connected?'ok':'warn');
+  $('#runTag').textContent=s.running?'running':'stopped'; $('#runTag').className='tag '+(s.running?'ok':'');
+  $('#haltTag').style.display=s.halt_reason?'':'none'; $('#haltTag').textContent=s.halt_reason||''; $('#haltTag').className='tag warn';
+  $('#btnStart').disabled=s.running; $('#btnStop').disabled=!s.running;
+  // banner
+  let b='';
+  const be=s.backend||'exness', cfgd=be==='exness'?s.exness_configured:s.metaapi_configured;
+  if(!cfgd) b=`<div class="banner info">No ${be==='exness'?'Exness API keys':'MetaApi credentials'} yet — running on a <b>synthetic price feed</b> so you can test the engine and dashboard. Use the <b>Connect Exness API</b> panel to add your key; then paper mode gets real Exness prices and live mode gets real execution. Synthetic backtest numbers are <b>not</b> market results.</div>`;
+  else if(!s.live_connected) b=`<div class="banner bad">${be} is configured but not connected: ${s.connect_error||'unknown'} — fix the keys/URL in the Connect panel, then <b>Test connection</b> and <b>Reconnect</b>.</div>`;
+  else if(s.mode==='live') b=`<div class="banner bad"><b>LIVE MODE on ${be}</b> — orders go to your real account. Daily loss cap ${CFG?CFG.risk.max_daily_loss_pct:'?'}%, kill switch top-right.</div>`;
+  $('#banner').innerHTML=b;
+  // stats
+  const a=s.account, st=s.stats;
+  $('#stats').innerHTML=[
+    ['Balance',fmt(a.balance)],['Equity',fmt(a.equity)],['Today PnL',pn(st.today_pnl)],['Today trades',st.today_trades],
+    ['Net PnL',pn(st.net_pnl)],['Trades',st.trades],['Win rate',st.win_rate+'%'],['Profit factor',st.profit_factor],['Avg R',st.avg_r],
+  ].map(([k,v])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  // symbols
+  const syms=CFG?CFG.symbols:[];
+  $('#symbols').innerHTML=syms.map(sc=>{const x=s.symbols[sc.symbol]||{};if(!selSym)selSym=sc.symbol;
+    return `<div class="symcard ${selSym===sc.symbol?'active':''}" onclick="selectSym('${sc.symbol}')">
+      <div class="n">${sc.symbol} <span class="pill ${x.trend||''}">${x.tf||sc.timeframe} ${x.trend||''}</span></div>
+      <div class="px">${x.bid?fmt(x.bid,x.bid>100?2:5):'—'} <span class="hint">/ ${x.ask?fmt(x.ask,x.ask>100?2:5):'—'}</span></div>
+      <div class="m">${sc.enabled?'':'<span class="pill">disabled</span> '}status: ${x.status||'idle'}<br>RSI ${x.rsi??'—'} · ATR ${x.atr??'—'} · spread ${x.spread??'—'}<br>EMA ${x.ema_fast??'—'} / ${x.ema_slow??'—'} / ${x.ema_trend??'—'}</div></div>`;}).join('');
+  // positions
+  $('#positions').innerHTML=s.positions.length?s.positions.map(p=>`<tr><td>${p.symbol}</td><td class="${p.side==='buy'?'pos':'neg'}">${p.side}</td><td>${p.volume}</td><td>${p.entry_price}</td><td>${p.stop_loss??'—'}${p.trailing_active?' <span class="pill up">trail</span>':''}</td><td>${p.take_profit??'—'}</td><td>${pn(p.unrealized_pnl)}</td><td><button class="danger" style="padding:3px 8px;font-size:11px" onclick="post('/api/positions/${p.id}/close').then(refresh)">close</button></td></tr>`).join('')
+    :'<tr><td colspan="8" class="hint">none</td></tr>';
+  // log
+  $('#log').innerHTML=s.events.map(e=>`<div class="${e.level}"><span class="t">${new Date(e.time).toLocaleTimeString()}</span> <b>${e.symbol}</b> ${e.msg}</div>`).join('');
+}
+
+async function refreshTrades(){
+  const t=await get('/api/trades?limit=100');
+  $('#trades').innerHTML=t.length?t.map(x=>`<tr><td>${new Date(x.close_time).toLocaleString()}</td><td>${x.symbol}</td><td class="${x.side==='buy'?'pos':'neg'}">${x.side}</td><td>${x.volume}</td><td>${x.entry_price}</td><td>${x.exit_price}</td><td>${x.reason}</td><td>${x.r_multiple}</td><td>${pn(x.pnl)}</td></tr>`).join('')
+    :'<tr><td colspan="9" class="hint">no closed trades yet</td></tr>';
+}
+
+// ---------------- charts ----------------
+// Uses lightweight-charts when the CDN loaded; otherwise a small built-in canvas renderer so the
+// dashboard never goes blank because of a blocked CDN.
+const LWC = window.LightweightCharts;
+const dark={layout:{background:{color:'transparent'},textColor:'#8a93a6'},grid:{vertLines:{color:'#1a2030'},horzLines:{color:'#1a2030'}},timeScale:{timeVisible:true,secondsVisible:false},rightPriceScale:{borderColor:'#222a37'}};
+function canvasFor(el){let cv=el.querySelector('canvas');if(!cv){cv=document.createElement('canvas');el.appendChild(cv);}cv.width=el.clientWidth*devicePixelRatio;cv.height=el.clientHeight*devicePixelRatio;cv.style.width='100%';cv.style.height='100%';const g=cv.getContext('2d');g.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);return [g,el.clientWidth,el.clientHeight];}
+function drawLines(el,series,fillColor){ // series: [{values:[], color}]
+  const [g,W,H]=canvasFor(el);g.clearRect(0,0,W,H);const all=series.flatMap(s=>s.values).filter(v=>v!=null);if(!all.length)return;
+  const lo=Math.min(...all),hi=Math.max(...all),pad=10,n=Math.max(...series.map(s=>s.values.length));
+  const X=i=>pad+(W-2*pad-50)*i/Math.max(1,n-1),Y=v=>pad+(H-2*pad)*(1-(v-lo)/((hi-lo)||1));
+  g.strokeStyle='#1a2030';for(let k=0;k<=4;k++){const y=pad+(H-2*pad)*k/4;g.beginPath();g.moveTo(pad,y);g.lineTo(W-50,y);g.stroke();g.fillStyle='#8a93a6';g.font='10px IBM Plex Mono';g.fillText((hi-(hi-lo)*k/4).toFixed(hi>100?0:4),W-46,y+3);}
+  series.forEach(s=>{g.beginPath();let st=false;s.values.forEach((v,i)=>{if(v==null)return;st?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v));st=true;});g.strokeStyle=s.color;g.lineWidth=s.width||1.5;g.stroke();
+    if(fillColor&&s===series[0]){g.lineTo(X(s.values.length-1),H-pad);g.lineTo(X(0),H-pad);g.closePath();g.fillStyle=fillColor;g.fill();}});
+}
+function drawCandles(el,c,emas){
+  const [g,W,H]=canvasFor(el);g.clearRect(0,0,W,H);if(!c.length)return;
+  const lo=Math.min(...c.map(x=>x.l)),hi=Math.max(...c.map(x=>x.h)),pad=10,n=c.length,bw=Math.max(1,(W-2*pad-50)/n*0.7);
+  const X=i=>pad+(W-2*pad-50)*(i+0.5)/n,Y=v=>pad+(H-2*pad)*(1-(v-lo)/((hi-lo)||1));
+  g.strokeStyle='#1a2030';for(let k=0;k<=4;k++){const y=pad+(H-2*pad)*k/4;g.beginPath();g.moveTo(pad,y);g.lineTo(W-50,y);g.stroke();g.fillStyle='#8a93a6';g.font='10px IBM Plex Mono';g.fillText((hi-(hi-lo)*k/4).toFixed(hi>100?2:5),W-46,y+3);}
+  c.forEach((x,i)=>{const up=x.c>=x.o;g.strokeStyle=g.fillStyle=up?'#2ecc8f':'#ff5c6c';g.beginPath();g.moveTo(X(i),Y(x.h));g.lineTo(X(i),Y(x.l));g.stroke();g.fillRect(X(i)-bw/2,Y(Math.max(x.o,x.c)),bw,Math.max(1,Math.abs(Y(x.o)-Y(x.c))));});
+  emas.forEach(s=>{g.beginPath();let st=false;s.values.forEach((v,i)=>{if(v==null)return;st?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v));st=true;});g.strokeStyle=s.color;g.lineWidth=1;g.stroke();});
+}
+let chart,candleS,emaF,emaS,emaT,eq,eqS,bt,btS;
+if(LWC){
+  chart=LWC.createChart($('#chart'),dark);
+  candleS=chart.addCandlestickSeries({upColor:'#2ecc8f',downColor:'#ff5c6c',wickUpColor:'#2ecc8f',wickDownColor:'#ff5c6c',borderVisible:false});
+  emaF=chart.addLineSeries({color:'#f2b632',lineWidth:1,priceLineVisible:false,lastValueVisible:false});
+  emaS=chart.addLineSeries({color:'#4ea1ff',lineWidth:1,priceLineVisible:false,lastValueVisible:false});
+  emaT=chart.addLineSeries({color:'#b07cff',lineWidth:1,priceLineVisible:false,lastValueVisible:false});
+  eq=LWC.createChart($('#eqchart'),dark);
+  eqS=eq.addAreaSeries({lineColor:'#f2b632',topColor:'rgba(242,182,50,.35)',bottomColor:'rgba(242,182,50,0)',lineWidth:2});
+  bt=LWC.createChart($('#btchart'),dark);
+  btS=bt.addLineSeries({color:'#2ecc8f',lineWidth:2});
+  new ResizeObserver(()=>{chart.applyOptions({width:$('#chart').clientWidth});eq.applyOptions({width:$('#eqchart').clientWidth});bt.applyOptions({width:$('#btchart').clientWidth});}).observe(document.body);
+}
+let lastBT=null;
+function setBacktestCurve(vals){lastBT=vals;if(LWC){btS.setData(vals.map((v,i)=>({time:i,value:v})));bt.timeScale().fitContent();}else drawLines($('#btchart'),[{values:vals,color:'#2ecc8f',width:2}]);}
+
+function ema(arr,p){const k=2/(p+1);let out=[],prev=null;arr.forEach((v,i)=>{if(i<p-1){out.push(null);return;}if(prev==null){prev=arr.slice(0,p).reduce((a,b)=>a+b)/p;}else prev=v*k+prev*(1-k);out.push(prev);});return out;}
+async function refreshChart(){
+  if(!selSym||!CFG)return; const sc=CFG.symbols.find(s=>s.symbol===selSym); if(!sc)return;
+  const c=await get(`/api/candles?symbol=${selSym}&timeframe=${sc.timeframe}&limit=250`);
+  $('#chartTitle').textContent=`${selSym} · ${sc.timeframe} · EMA ${sc.ema_fast}/${sc.ema_slow}/${sc.ema_trend}${LWC?'':' · (basic chart — CDN unavailable)'}`;
+  const cl=c.map(x=>x.c);
+  const emas=[{values:ema(cl,sc.ema_fast),color:'#f2b632'},{values:ema(cl,sc.ema_slow),color:'#4ea1ff'},{values:ema(cl,sc.ema_trend),color:'#b07cff'}];
+  const e=await get('/api/equity');
+  if(LWC){
+    candleS.setData(c.map(x=>({time:x.t,open:x.o,high:x.h,low:x.l,close:x.c})));
+    const mk=(v)=>c.map((x,i)=>v[i]==null?null:{time:x.t,value:v[i]}).filter(Boolean);
+    emaF.setData(mk(emas[0].values));emaS.setData(mk(emas[1].values));emaT.setData(mk(emas[2].values));
+    const pos=(STATUS?.positions||[]).filter(p=>p.symbol===selSym);
+    candleS.setMarkers(pos.map(p=>({time:c[c.length-1].t,position:p.side==='buy'?'belowBar':'aboveBar',color:p.side==='buy'?'#2ecc8f':'#ff5c6c',shape:p.side==='buy'?'arrowUp':'arrowDown',text:p.side+' '+p.volume})));
+    const seen=new Set();
+    eqS.setData(e.map(x=>({time:Math.floor(new Date(x.t).getTime()/1000),value:x.equity})).filter(x=>{if(seen.has(x.time))return false;seen.add(x.time);return true;}));
+  } else {
+    drawCandles($('#chart'),c,emas);
+    drawLines($('#eqchart'),[{values:e.map(x=>x.equity),color:'#f2b632',width:2}],'rgba(242,182,50,.15)');
+    if(lastBT)setBacktestCurve(lastBT);
+  }
+}
+function selectSym(s){selSym=s;refresh();refreshChart();}
+
+// ---------------- backtest ----------------
+async function runBacktest(ev){ev.preventDefault();$('#btNote').textContent='running…';
+  try{const r=await post('/api/backtest',{symbol:$('#btSymbol').value,timeframe:$('#btTf').value,bars:+$('#btBars').value,balance:+$('#btBal').value});
+    $('#btNote').textContent=`${r.bars} bars · data: ${r.data_source}${r.data_source==='synthetic'?' (NOT real market data)':''}`;
+    const ex=Object.entries(r.exit_reasons).map(([k,v])=>`${k}:${v}`).join(' ');
+    $('#btStats').innerHTML=[['Trades',r.trades],['Win rate',r.win_rate+'%'],['Net PnL',pn(r.net_pnl)],['Profit factor',r.profit_factor],['Avg R',r.avg_r],['Max DD',r.max_drawdown_pct+'%'],['Avg win',fmt(r.avg_win)],['Avg loss',fmt(r.avg_loss)],['Exits',ex||'—']]
+      .map(([k,v])=>`<div class="stat"><div class="k">${k}</div><div class="v" style="font-size:15px">${v}</div></div>`).join('');
+    setBacktestCurve(r.equity);
+  }catch(e){$('#btNote').textContent='error: '+e.message;}
+}
+
+// ---------------- settings ----------------
+async function loadConfig(){CFG=await get('/api/config');
+  $('#f_mode').value=CFG.mode;$('#f_backend').value=CFG.backend||'exness';$('#f_poll').value=CFG.poll_seconds;$('#f_pbal').value=CFG.paper_balance;
+  $('#f_mdl').value=CFG.risk.max_daily_loss_pct;$('#f_mdt').value=CFG.risk.max_daily_trades;$('#f_mop').value=CFG.risk.max_open_positions;$('#f_hours').value=CFG.risk.trading_hours_utc;
+  $('#btSymbol').innerHTML=CFG.symbols.map(s=>`<option>${s.symbol}</option>`).join('');
+  renderSymTabs();
+}
+function renderSymTabs(){
+  $('#symTabs').innerHTML=CFG.symbols.map((s,i)=>`<button type="button" class="${i===selTab?'on':''}" onclick="selTab=${i};renderSymTabs()">${s.symbol}</button>`).join('')+`<button type="button" onclick="addSymbol()">+ add</button><button type="button" class="danger" onclick="removeSymbol()">remove</button>`;
+  const sc=CFG.symbols[selTab]; if(!sc){$('#symFields').innerHTML='';return;}
+  $('#symFields').innerHTML=`<label>Symbol <input data-k="symbol" value="${sc.symbol}"></label>`+SYM_FIELDS.map(([k,l,t])=>{
+    if(t==='checkbox')return `<label>${l}<input type="checkbox" data-k="${k}" ${sc[k]?'checked':''}></label>`;
+    if(t&&t.startsWith('select:'))return `<label>${l}<select data-k="${k}">${t.slice(7).split(',').map(o=>`<option ${o===sc[k]?'selected':''}>${o}</option>`).join('')}</select></label>`;
+    return `<label>${l}<input type="number" step="any" data-k="${k}" value="${sc[k]}"></label>`;}).join('');
+}
+function readSymFields(){const sc=CFG.symbols[selTab];if(!sc)return;$('#symFields').querySelectorAll('[data-k]').forEach(el=>{const k=el.dataset.k;sc[k]=el.type==='checkbox'?el.checked:(el.tagName==='SELECT'||k==='symbol'?el.value:+el.value);});}
+function addSymbol(){readSymFields();CFG.symbols.push({...CFG.symbols[0],symbol:'NEWSYMm',enabled:false});selTab=CFG.symbols.length-1;renderSymTabs();}
+function removeSymbol(){CFG.symbols.splice(selTab,1);selTab=0;renderSymTabs();}
+async function saveConfig(ev){ev.preventDefault();readSymFields();
+  const body={mode:$('#f_mode').value,backend:$('#f_backend').value,poll_seconds:+$('#f_poll').value,paper_balance:+$('#f_pbal').value,
+    risk:{...CFG.risk,max_daily_loss_pct:+$('#f_mdl').value,max_daily_trades:+$('#f_mdt').value,max_open_positions:+$('#f_mop').value,trading_hours_utc:$('#f_hours').value},
+    symbols:CFG.symbols};
+  if(body.mode==='live'&&CFG.mode!=='live'&&!confirm('Switch to LIVE mode? The engine will send real orders when started.'))return;
+  try{const r=await fetch('/api/config',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json();if(!r.ok)throw new Error(j.detail);toast('Settings saved');await loadConfig();refresh();refreshChart();}catch(e){toast(e.message);}
+}
+
+
+// ---------------- Exness connect ----------------
+async function loadCreds(){const c=await get('/api/credentials');
+  $('#c_key').value=c.EXN_API_KEY||'';$('#c_acc').value=c.EXN_ACCOUNT_ID||'';$('#c_gw').value=c.EXN_DISCOVERY_BASE_URL||'';$('#c_ap').value=c.EXN_API_BASE_URL||'';
+  $('#c_priv').placeholder=c.EXN_PRIVATE_KEY?'private key stored — paste a new one only to replace it':'paste here';
+  $('#credStatus').textContent=c.exness_configured?'keys stored ✓':'not configured';}
+async function saveCreds(ev){ev.preventDefault();
+  const body={EXN_API_KEY:$('#c_key').value,EXN_ACCOUNT_ID:$('#c_acc').value,EXN_DISCOVERY_BASE_URL:$('#c_gw').value,EXN_API_BASE_URL:$('#c_ap').value};
+  if($('#c_priv').value.trim())body.EXN_PRIVATE_KEY=$('#c_priv').value.trim();
+  try{const r=await fetch('/api/credentials',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json();if(!r.ok)throw new Error(j.detail);
+    $('#c_priv').value='';toast('Keys saved locally');await loadCreds();}catch(e){toast(e.message);}}
+async function clearCreds(){if(!confirm('Remove the stored Exness keys from this server?'))return;
+  await fetch('/api/credentials',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({EXN_API_KEY:null,EXN_PRIVATE_KEY:null,EXN_ACCOUNT_ID:null,EXN_DISCOVERY_BASE_URL:null,EXN_API_BASE_URL:null})});
+  $('#c_priv').value='';await loadCreds();toast('Keys removed');}
+async function testExness(){$('#credStatus').textContent='testing… (discovery → account → limits → snapshot)';
+  try{const r=await post('/api/exness/test');$('#pr_out').textContent=JSON.stringify(r,null,1);$('#pr_out').closest('details').open=true;
+    if(r.ok){$('#credStatus').textContent='connected ✓ access point '+r.access_point;$('#c_ap').value=r.access_point;toast('Exness connection OK — click Reconnect in Settings to use it');}
+    else $('#credStatus').textContent='failed: '+r.error;}
+  catch(e){$('#credStatus').textContent='failed: '+e.message;}}
+async function keygen(){const r=await post('/api/exness/keygen');$('#kg_pub').value=r.public_key_registration;$('#c_priv').value=r.private_key_pem;$('#keygenBox').style.display='';$('#keygenBox').open=true;}
+async function probe(){$('#pr_out').textContent='…';
+  try{const r=await get(`/api/exness/probe?what=${$('#pr_what').value}&instrument=${encodeURIComponent($('#pr_ins').value)}&timeframe=${$('#pr_tf').value}`);$('#pr_out').textContent=JSON.stringify(r.raw,null,1);}
+  catch(e){$('#pr_out').textContent='error: '+e.message;}}
+
+// ---------------- boot ----------------
+(async()=>{await loadConfig();await loadCreds();await refresh();await refreshTrades();await refreshChart();
+  setInterval(refresh,3000);setInterval(refreshTrades,10000);setInterval(refreshChart,15000);})();
+</script>
+</body>
+</html>
