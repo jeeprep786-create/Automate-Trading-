@@ -1,21 +1,25 @@
-# Fly.io: `fly launch --copy-config --no-deploy && fly volumes create data -s 1 && fly secrets set DASHBOARD_PASSWORD=... && fly deploy`
-app = "iitian-scalper"
-primary_region = "sin"      # Singapore — closest to India; use "lhr" for London Exness servers
+# fly.toml app configuration file generated for saurabh11 on 2026-11-01T22:53:16Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'saurabh11'
+primary_region = 'ams'
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = 'Dockerfile'
+
+[[mounts]]
+  source = 'data'
+  destination = '/app/data'
 
 [http_service]
-  internal_port = 8000
+  internal_port = 8080
   force_https = true
-  auto_stop_machines = false   # the engine must keep running
+  auto_stop_machines = 'off'
   auto_start_machines = true
   min_machines_running = 1
 
-[mounts]
-  source = "data"
-  destination = "/app/data"
-
 [[vm]]
-  size = "shared-cpu-1x"
-  memory = "512mb"
+  size = 'shared-cpu-1x'
+  memory = '512mb'
